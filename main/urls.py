@@ -9,5 +9,5 @@ urlpatterns = [
     path('update_user', UpdateUser.as_view()), 
     path('delete_user', DeleteUser.as_view()), 
     path('login', Login.as_view()), 
-    path('ar_model', AR_Model.as_view()), 
+    path('ar_model', AsthmaData.as_view()), 
 ]

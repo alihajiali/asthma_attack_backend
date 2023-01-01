@@ -2,6 +2,7 @@ from curses.ascii import isdigit
 from pydoc import doc
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from jdatetime import datetime, timedelta
 from rest_framework.status import *
 from env import *
 from utilities import *
@@ -149,9 +150,29 @@ class Login(APIView):
         return Response({"message":"user is not exists"}, status=HTTP_401_UNAUTHORIZED)
 
 
-class AR_Model(APIView):
+class AsthmaData(APIView):
+    def check(self, user_id, this_percent, days_ago, change_percent):
+        gte_time = datetime.now() - timedelta(days=days_ago)
+        data = [item["_source"]["percent"] for item in es.search(index="asthma_data", query={"bool":{"must":[
+            {"match":{"user_id.keyword":user_id}}, 
+            {"range":{"date":{"gte":gte_time}}}
+        ]}})["hits"]["hits"]]
+        data.append(this_percent)
+        if abs(max(data) - min(data)) >= change_percent:
+            user_data = es.get(index="user_1", id=user_id)["_source"]
+            send_sms(user_data["phone_number"], "با سلام وضعیت آسم شما بحرانی میباشد")
+
+
     def post(self, request):
         if Auth(jwt_checker(request.headers["Authorization"].split(" ")[1])):
-            {"":request.data["noun"]}
+            data = request.data
+            result = {
+                "percent":float(data["percent"]), 
+                "date":datetime.now().isoformat(), 
+                "user_id":data["user_id"] 
+            }
+            es.index(index="asthma_data", document=result)
+            self.check(data["user_id"], data["percent"], 7, 4)
+            self.check(data["user_id"], data["percent"], 30, 7)
             return Response({"message":"data added"}, status=HTTP_201_CREATED)
         return Response({"message":"user is not Autorize"}, status=HTTP_401_UNAUTHORIZED)
