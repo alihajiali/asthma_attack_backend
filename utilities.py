@@ -45,7 +45,7 @@ def jwt_checker(token):
     data = jwt.decode(token.encode(), DJANGO_SECRET_KEY, algorithms=["HS256"])
     return data
 
-print(jwt_generator("username"))
+
 
 def Auth(jwt_json):
     if datetime.now().isoformat() < jwt_json["expire"]:
