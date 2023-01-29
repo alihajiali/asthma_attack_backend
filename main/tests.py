@@ -12,7 +12,7 @@ class UserTest(unittest.TestCase):
         self.size = 20
         data = self.obj.get_user(User, self.page, self.size)
         self.assertEqual(data[1], 200)
-        user_count = es.count(index="user_1")["count"]
+        user_count = es.count(index="user_2")["count"]
         self.assertEqual(data[0]["total_record"], user_count)
         self.assertEqual(data[0]["pages"], user_count // self.size if user_count % self.size == 0 else (user_count // self.size)+1)
 
@@ -58,7 +58,7 @@ class UserTest(unittest.TestCase):
         self.assertEqual(data[1], 201)
         self.assertEqual(data[0]["message"], "registered")
         sleep(1)
-        es.delete(index="user_1", id=self.username)
+        es.delete(index="user_2", id=self.username)
 
 
 def main():

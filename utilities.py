@@ -8,7 +8,7 @@ import jwt
 
 
 def hash_saz(matn):
-    return hashlib.sha256(str.encode()).hexdigest()
+    return hashlib.sha256(str(matn).encode()).hexdigest()
 
 
 
