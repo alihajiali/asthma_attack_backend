@@ -128,7 +128,7 @@ class DeleteUser(APIView):
     def post(self, request):
         username = request.data["username"]
         user_data = es.get(index="user_2", id=username)
-        if user_data["_source"]["status"] == "inactive": 
+        if user_data["_source"]["status"] == "active": 
             phone_number = user_data["_source"]["phone_number"]
             code = generate_code(username)
             if code:
