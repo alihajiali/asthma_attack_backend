@@ -71,15 +71,18 @@ class User(APIView):
 class ActivePhoneNumver(APIView):
     def get(self, request):
         data = request.GET
+        user_data = es.search(index="user_2", query={"match":{"username.keyword":data["username"]}})["hits"]["hits"]
+        if len(user_data) == 0:
+            return Response({"message":"username not exists"}, status=HTTP_403_FORBIDDEN)
         if check_code(data["username"], data["code"]):
-            es.update(index="user_2", id=data["username"], doc={"status":"active"})
+            es.update(index="user_2", id=user_data[0]["_id"], doc={"status":"active"})
             return Response({"message":"user activate"}, status=HTTP_200_OK)
         return Response({"message":"code is wrong"}, status=HTTP_400_BAD_REQUEST)
 
     def post(self, request):
         username = request.data["username"]
-        user_data = es.get(index="user_2", id=username)
-        if user_data["_source"]["status"] == "inactive": 
+        user_data = es.search(index="user_2", query={"match":{"username.keyword":username}})["hits"]["hits"]
+        if len(user_data)>0 and user_data["_source"]["status"] == "inactive": 
             phone_number = user_data["_source"]["phone_number"]
             code = generate_code(username)
             if code:
@@ -92,6 +95,9 @@ class ActivePhoneNumver(APIView):
 class UpdateUser(APIView):
     def get(self, request):
         data = request.GET
+        user_data = es.search(index="user_2", query={"match":{"username.keyword":data["username"]}})["hits"]["hits"]
+        if len(user_data) == 0:
+            return Response({"message":"username not exists"}, status=HTTP_403_FORBIDDEN)
         if check_code(data["username"], data["code"]):
             user_data = {}
             if "new_username" in data:
@@ -102,33 +108,38 @@ class UpdateUser(APIView):
                 user_data["email"] = data["email"]
             if "new_password" in data:
                 user_data["password"] = hash_saz(data["new_password"])
-            es.update(index="user_2", id=data["username"], doc=user_data)
+            es.update(index="user_2", id=user_data[0]["_id"], doc=user_data)
             return Response({"message":"user updated"}, status=HTTP_200_OK)
         return Response({"message":"code is wrong"}, status=HTTP_400_BAD_REQUEST)
 
     def post(self, request):
         username = request.data["username"]
-        user_data = es.get(index="user_2", id=username)
-        phone_number = user_data["_source"]["phone_number"]
-        code = generate_code(username)
-        if code:
-            send_sms(phone_number, f"کد ارسالی برای شما عبارت است از :\n{code}")
-            return Response({"message":"code sended"}, status=HTTP_200_OK)
-        return Response({"message":"code is not expire"}, status=HTTP_403_FORBIDDEN)
+        user_data = es.search(index="user_2", query={"match":{"username.keyword":username}})["hits"]["hits"]
+        if len(user_data)>0:
+            phone_number = user_data["_source"]["phone_number"]
+            code = generate_code(username)
+            if code:
+                send_sms(phone_number, f"کد ارسالی برای شما عبارت است از :\n{code}")
+                return Response({"message":"code sended"}, status=HTTP_200_OK)
+            return Response({"message":"code is not expire"}, status=HTTP_403_FORBIDDEN)
+        return Response({"message":"username not exists"}, status=HTTP_403_FORBIDDEN)
 
 
 class DeleteUser(APIView):
     def get(self, request):
         data = request.GET
+        user_data = es.search(index="user_2", query={"match":{"username.keyword":data["username"]}})["hits"]["hits"]
+        if len(user_data) == 0:
+            return Response({"message":"username not exists"}, status=HTTP_403_FORBIDDEN)
         if check_code(data["username"], data["code"]):
-            es.delete(index="user_2", id=data["username"])
+            es.delete(index="user_2", id=user_data[0]["_id"])
             return Response({"message":"user deleted"}, status=HTTP_200_OK)
         return Response({"message":"code is wrong"}, status=HTTP_400_BAD_REQUEST)
 
     def post(self, request):
         username = request.data["username"]
-        user_data = es.get(index="user_2", id=username)
-        if user_data["_source"]["status"] == "active": 
+        user_data = es.search(index="user_2", query={"match":{"username.keyword":username}})["hits"]["hits"]
+        if len(user_data)>0 and user_data["_source"]["status"] == "active": 
             phone_number = user_data["_source"]["phone_number"]
             code = generate_code(username)
             if code:
