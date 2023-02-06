@@ -81,8 +81,8 @@ class ActivePhoneNumver(APIView):
     def post(self, request):
         username = request.data["username"]
         user_data = es.search(index="user_2", query={"match":{"username.keyword":username}})["hits"]["hits"]
-        if len(user_data)>0 and user_data["_source"]["status"] == "inactive": 
-            phone_number = user_data["_source"]["phone_number"]
+        if len(user_data)>0 and user_data[0]["_source"]["status"] == "inactive": 
+            phone_number = user_data[0]["_source"]["phone_number"]
             code = generate_code(username)
             if code:
                 send_sms(phone_number, f"کد ارسالی برای شما عبارت است از :\n{code}")
@@ -100,14 +100,14 @@ class UpdateUser(APIView):
         if check_code(data["username"], data["code"]):
             user_data = {}
             if "new_username" in data:
-                user_data["username"] = data["new_username"]
+                user_data[0]["username"] = data["new_username"]
             if "new_phone_number" in data:
-                user_data["phone_number"] = data["new_phone_number"]
+                user_data[0]["phone_number"] = data["new_phone_number"]
             if "new_email" in data:
-                user_data["email"] = data["email"]
+                user_data[0]["email"] = data["email"]
             if "new_password" in data:
-                user_data["password"] = hash_saz(data["new_password"])
-            es.update(index="user_2", id=user_data[0]["_id"], doc=user_data)
+                user_data[0]["password"] = hash_saz(data["new_password"])
+            es.update(index="user_2", id=user_data[0]["_id"], doc=user_data[0])
             return Response({"message":"user updated"}, status=HTTP_200_OK)
         return Response({"message":"code is wrong"}, status=HTTP_400_BAD_REQUEST)
 
@@ -115,7 +115,7 @@ class UpdateUser(APIView):
         username = request.data["username"]
         user_data = es.search(index="user_2", query={"match":{"username.keyword":username}})["hits"]["hits"]
         if len(user_data)>0:
-            phone_number = user_data["_source"]["phone_number"]
+            phone_number = user_data[0]["_source"]["phone_number"]
             code = generate_code(username)
             if code:
                 send_sms(phone_number, f"کد ارسالی برای شما عبارت است از :\n{code}")
@@ -138,8 +138,8 @@ class DeleteUser(APIView):
     def post(self, request):
         username = request.data["username"]
         user_data = es.search(index="user_2", query={"match":{"username.keyword":username}})["hits"]["hits"]
-        if len(user_data)>0 and user_data["_source"]["status"] == "active": 
-            phone_number = user_data["_source"]["phone_number"]
+        if len(user_data)>0 and user_data[0]["_source"]["status"] == "active": 
+            phone_number = user_data[0]["_source"]["phone_number"]
             code = generate_code(username)
             if code:
                 send_sms(phone_number, f"کد ارسالی برای شما عبارت است از :\n{code}")
