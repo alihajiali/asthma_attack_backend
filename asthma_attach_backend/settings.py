@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders', 
     'main',  
+    'api',  
 ]
 
 MIDDLEWARE = [
@@ -57,10 +58,11 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ORIGIN_ALLOW_ALL = True
-CORS_MISSING_ALLOW_ALL = True
-CORS_MISSING_ALLOW_ORIGIN = True
-CORS_MISSING_ALLOW_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ORIGIN_ALLOW_ALL = True
+# CORS_MISSING_ALLOW_ALL = True
+# CORS_MISSING_ALLOW_ORIGIN = True
+# CORS_MISSING_ALLOW_ORIGINS = True
 
 ROOT_URLCONF = 'asthma_attach_backend.urls'
 
